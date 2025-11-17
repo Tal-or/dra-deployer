@@ -20,7 +20,6 @@ var (
 	verbosity int
 )
 
-// rootCmd represents the base command
 var rootCmd = &cobra.Command{
 	Use:   "dra-deployer",
 	Short: "Command line tool for deploying DRA plugins",
@@ -33,7 +32,6 @@ to a cluster.`,
 	},
 }
 
-// renderCmd represents the render command
 var renderCmd = &cobra.Command{
 	Use:   "render",
 	Short: "Render DRA plugin manifests to stdout",
@@ -49,7 +47,6 @@ reviewing the manifests before applying them or for piping to kubectl apply.`,
 	},
 }
 
-// applyCmd represents the apply command
 var applyCmd = &cobra.Command{
 	Use:   "apply",
 	Short: "Apply DRA plugin manifests to a Kubernetes cluster",
@@ -58,6 +55,22 @@ create or update the necessary resources including ServiceAccount, ClusterRole,
 ClusterRoleBinding, DaemonSet, DeviceClasses, and ValidatingAdmissionPolicy.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return apply()
+	},
+}
+
+var deleteCmd = &cobra.Command{
+	Use:   "delete",
+	Short: "Delete DRA plugin manifests from a Kubernetes cluster",
+	Long: `Delete all DRA plugin manifests from a Kubernetes cluster. If a namespace 
+is specified, deleting the namespace will automatically remove all namespaced resources 
+(ServiceAccount, DaemonSet). Cluster-scoped resources will be deleted explicitly.`,
+	Example: `  # Delete with default namespace
+  dra-deployer delete
+
+  # Delete with custom namespace
+  dra-deployer delete --namespace my-namespace`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return delete()
 	},
 }
 
@@ -76,9 +89,14 @@ func init() {
 	applyCmd.Flags().StringVarP(&namespace, "namespace", "n", "dra-deployer",
 		"Namespace for namespaced resources")
 
+	// Add namespace flag to delete command
+	deleteCmd.Flags().StringVarP(&namespace, "namespace", "n", "dra-deployer",
+		"Namespace for namespaced resources")
+
 	// Add subcommands
 	rootCmd.AddCommand(renderCmd)
 	rootCmd.AddCommand(applyCmd)
+	rootCmd.AddCommand(deleteCmd)
 }
 
 // Execute runs the root command
@@ -138,10 +156,21 @@ func render() error {
 // deploy applies all manifests to the Kubernetes cluster
 func apply() error {
 	// Create client with all necessary types registered
-	cli, err := cli.New()
+	c, err := cli.New()
 	if err != nil {
 		return err
 	}
 
-	return deploy.Deploy(context.Background(), cli, namespace)
+	return deploy.Deploy(context.Background(), c, namespace)
+}
+
+// delete removes all manifests from the Kubernetes cluster
+func delete() error {
+	// Create client with all necessary types registered
+	c, err := cli.New()
+	if err != nil {
+		return err
+	}
+
+	return deploy.Delete(context.Background(), c, namespace)
 }

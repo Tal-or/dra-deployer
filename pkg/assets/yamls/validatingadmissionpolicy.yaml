@@ -10,10 +10,6 @@ spec:
       apiVersions: ["v1beta1"]
       operations:  ["CREATE", "UPDATE", "DELETE"]
       resources:   ["resourceslices"]
-  matchConditions:
-  - name: isRestrictedUser
-    expression: >-
-      request.userInfo.username == "system:serviceaccount:openshift-cluster-node-tuning-operator:dra-cpu-driver-service-account"
   variables:
   - name: userNodeName
     expression: >-

@@ -151,10 +151,7 @@ func GetClusterRoleBinding(namespace string) (*rbacv1.ClusterRoleBinding, error)
 	if err := decodeManifest("clusterrolebinding.yaml", crb); err != nil {
 		return nil, err
 	}
-	// Update the namespace in the subject
-	for i := range crb.Subjects {
-		crb.Subjects[i].Namespace = namespace
-	}
+	crb.Subjects[0].Namespace = namespace
 	return crb, nil
 }
 
@@ -239,21 +236,17 @@ func GetValidatingAdmissionPolicy(namespace string) (*admissionregistrationv1.Va
 		return nil, err
 	}
 
-	// Update the namespace in the matchConditions expression
+	// Add the matchCondition with the correct namespace
 	// The expression references: system:serviceaccount:<namespace>:<service-account-name>
-	for i := range vap.Spec.MatchConditions {
-		if vap.Spec.MatchConditions[i].Name == "isRestrictedUser" {
-			// Replace the hardcoded namespace with the provided namespace
-			oldExpr := vap.Spec.MatchConditions[i].Expression
-			// The original expression contains: system:serviceaccount:openshift-cluster-node-tuning-operator:dra-cpu-driver-service-account
-			// We need to replace the namespace part
-			newExpr := fmt.Sprintf(`request.userInfo.username == "system:serviceaccount:%s:dra-cpu-driver-service-account"`, namespace)
-			vap.Spec.MatchConditions[i].Expression = newExpr
-			klog.V(4).InfoS("Updated ValidatingAdmissionPolicy matchCondition expression",
-				"oldExpression", oldExpr,
-				"newExpression", newExpr)
-		}
+	matchCondition := admissionregistrationv1.MatchCondition{
+		Name:       "isRestrictedUser",
+		Expression: fmt.Sprintf(`request.userInfo.username == "system:serviceaccount:%s:dra-cpu-driver-service-account"`, namespace),
 	}
+	vap.Spec.MatchConditions = append(vap.Spec.MatchConditions, matchCondition)
+
+	klog.V(4).InfoS("Added ValidatingAdmissionPolicy matchCondition",
+		"name", matchCondition.Name,
+		"expression", matchCondition.Expression)
 
 	return vap, nil
 }
@@ -273,10 +266,7 @@ func GetSecurityContextConstraints(namespace string) (*securityv1.SecurityContex
 	if err := decodeManifest("securitycontextconstraints.yaml", scc); err != nil {
 		return nil, err
 	}
-	// Update users list with the correct namespace
-	for i := range scc.Users {
-		scc.Users[i] = fmt.Sprintf("system:serviceaccount:%s:dra-cpu-driver-service-account", namespace)
-	}
+	scc.Users = []string{fmt.Sprintf("system:serviceaccount:%s:dra-cpu-driver-service-account", namespace)}
 	return scc, nil
 }
 

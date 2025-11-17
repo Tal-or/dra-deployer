@@ -2,12 +2,10 @@ apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: dra-cpu-driver-kubeletplugin
-  namespace: openshift-cluster-node-tuning-operator
   labels:
     app.kubernetes.io/name: dra-cpu-driver
     app.kubernetes.io/instance: dra-cpu-driver
     app.kubernetes.io/version: "0.1.0"
-    app.kubernetes.io/managed-by: cluster-node-tuning-operator
 spec:
   selector:
     matchLabels:

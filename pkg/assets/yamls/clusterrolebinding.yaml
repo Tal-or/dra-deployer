@@ -2,11 +2,9 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: dra-cpu-driver-role-binding
-  namespace: openshift-cluster-node-tuning-operator
 subjects:
 - kind: ServiceAccount
   name: dra-cpu-driver-service-account
-  namespace: openshift-cluster-node-tuning-operator
 roleRef:
   kind: ClusterRole
   name: dra-cpu-driver-role

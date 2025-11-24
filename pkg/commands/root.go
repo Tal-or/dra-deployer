@@ -15,7 +15,7 @@ var (
 )
 
 const (
-	defaultImage     = "quay.io/titzhak/dra-cpu-driver:latest"
+	defaultImage     = "quay.io/titzhak/dra-example-driver:v0.1.0"
 	defaultNamespace = "dra-deployer"
 	defaultVerbosity = 2
 )

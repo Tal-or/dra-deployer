@@ -25,13 +25,9 @@ spec:
       - name: plugin
         securityContext:
           privileged: true
-        image: quay.io/titzhak/dra-cpu-driver:latest
+        image: quay.io/titzhak/dra-example-driver:v0.1.0
         imagePullPolicy: Always
-        command: ["dra-cpu-kubeletplugin"]
-        args:
-          - --reserved-cpus=0,1
-          - --allocatable-cpus=3-7
-          - --shared-cpus=2
+        command: ["dra-example-kubeletplugin"]
         env:
         - name: CDI_ROOT
           value: /var/run/cdi

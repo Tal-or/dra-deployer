@@ -61,10 +61,10 @@ func (m *Manifests) GetObjects() []client.Object {
 	}
 }
 
-// GetAll returns all DRA CPU driver manifests with the specified namespace applied
+// GetAll returns all DRA CPU driver manifests with the specified namespace and image applied
 // where applicable. Cluster-scoped resources (ClusterRole, DeviceClasses, etc.) are
 // not affected by the namespace parameter.
-func GetAll(namespace string) (*Manifests, error) {
+func GetAll(namespace, image string) (*Manifests, error) {
 	sa, err := GetServiceAccount(namespace)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get ServiceAccount: %w", err)
@@ -80,7 +80,7 @@ func GetAll(namespace string) (*Manifests, error) {
 		return nil, fmt.Errorf("failed to get ClusterRoleBinding: %w", err)
 	}
 
-	ds, err := GetDaemonSet(namespace)
+	ds, err := GetDaemonSet(namespace, image)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get DaemonSet: %w", err)
 	}
@@ -156,12 +156,17 @@ func GetClusterRoleBinding(namespace string) (*rbacv1.ClusterRoleBinding, error)
 }
 
 // GetDaemonSet returns the DRA CPU driver DaemonSet
-func GetDaemonSet(namespace string) (*appsv1.DaemonSet, error) {
+func GetDaemonSet(namespace, image string) (*appsv1.DaemonSet, error) {
 	ds := &appsv1.DaemonSet{}
 	if err := decodeManifest("daemonset.yaml", ds); err != nil {
 		return nil, err
 	}
 	ds.Namespace = namespace
+	// Update the container image
+	if len(ds.Spec.Template.Spec.Containers) > 0 {
+		ds.Spec.Template.Spec.Containers[0].Image = image
+		klog.V(4).InfoS("Set DaemonSet container image", "image", image)
+	}
 	return ds, nil
 }
 

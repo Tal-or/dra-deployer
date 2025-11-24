@@ -5,11 +5,11 @@ import (
 
 	"k8s.io/klog/v2"
 
-	"github.com/Tal-or/dra-deployer/pkg/cmd"
+	"github.com/Tal-or/dra-deployer/pkg/commands"
 )
 
 func main() {
-	if err := cmd.Execute(); err != nil {
+	if err := commands.Execute(); err != nil {
 		klog.ErrorS(err, "Error executing command")
 		os.Exit(1)
 	}

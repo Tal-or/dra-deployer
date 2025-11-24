@@ -6,7 +6,8 @@ import (
 
 func TestGetAll(t *testing.T) {
 	namespace := "test-namespace"
-	manifests, err := GetAll(namespace)
+	image := "quay.io/test/test-image:v1.0.0"
+	manifests, err := GetAll(namespace, image)
 	if err != nil {
 		t.Fatalf("GetAll failed: %v", err)
 	}
@@ -40,8 +41,18 @@ func TestGetAll(t *testing.T) {
 	// Verify DaemonSet
 	if manifests.DaemonSet == nil {
 		t.Error("DaemonSet is nil")
-	} else if manifests.DaemonSet.Namespace != namespace {
-		t.Errorf("DaemonSet namespace: expected %s, got %s", namespace, manifests.DaemonSet.Namespace)
+	} else {
+		if manifests.DaemonSet.Namespace != namespace {
+			t.Errorf("DaemonSet namespace: expected %s, got %s", namespace, manifests.DaemonSet.Namespace)
+		}
+		// Verify the image is correctly set
+		if len(manifests.DaemonSet.Spec.Template.Spec.Containers) > 0 {
+			if manifests.DaemonSet.Spec.Template.Spec.Containers[0].Image != image {
+				t.Errorf("DaemonSet image: expected %s, got %s", image, manifests.DaemonSet.Spec.Template.Spec.Containers[0].Image)
+			}
+		} else {
+			t.Error("DaemonSet has no containers")
+		}
 	}
 
 	// Verify ValidatingAdmissionPolicy
@@ -138,7 +149,8 @@ func TestGetClusterRoleBinding(t *testing.T) {
 
 func TestGetDaemonSet(t *testing.T) {
 	namespace := "test-namespace"
-	ds, err := GetDaemonSet(namespace)
+	image := "quay.io/test/test-image:v1.0.0"
+	ds, err := GetDaemonSet(namespace, image)
 	if err != nil {
 		t.Fatalf("GetDaemonSet failed: %v", err)
 	}
@@ -157,6 +169,11 @@ func TestGetDaemonSet(t *testing.T) {
 
 	if len(ds.Spec.Template.Spec.Containers) == 0 {
 		t.Error("DaemonSet has no containers")
+	} else {
+		// Verify the image is correctly set
+		if ds.Spec.Template.Spec.Containers[0].Image != image {
+			t.Errorf("Expected image %s, got %s", image, ds.Spec.Template.Spec.Containers[0].Image)
+		}
 	}
 }
 

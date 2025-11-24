@@ -14,8 +14,8 @@ import (
 	"github.com/Tal-or/dra-deployer/pkg/manifests"
 )
 
-func Deploy(ctx context.Context, cli client.Client, namespace string) error {
-	klog.InfoS("deploying manifests to cluster", "namespace", namespace)
+func Deploy(ctx context.Context, cli client.Client, namespace, image string) error {
+	klog.InfoS("deploying manifests to cluster", "namespace", namespace, "image", image)
 
 	// Check and create namespace if needed
 	err := createNamespaceIfNeeded(ctx, cli, namespace)
@@ -24,7 +24,7 @@ func Deploy(ctx context.Context, cli client.Client, namespace string) error {
 	}
 
 	// Get all manifests
-	m, err := manifests.GetAll(namespace)
+	m, err := manifests.GetAll(namespace, image)
 	if err != nil {
 		return fmt.Errorf("failed to get manifests: %w", err)
 	}
@@ -73,8 +73,8 @@ func createNamespaceIfNeeded(ctx context.Context, cli client.Client, namespace s
 func Delete(ctx context.Context, cli client.Client, namespace string) error {
 	klog.InfoS("Deleting manifests from cluster", "namespace", namespace)
 
-	// Get all manifests
-	m, err := manifests.GetAll(namespace)
+	// Get all manifests (image doesn't matter for deletion, using default)
+	m, err := manifests.GetAll(namespace, "")
 	if err != nil {
 		return fmt.Errorf("failed to get manifests: %w", err)
 	}

@@ -75,3 +75,6 @@ version: ## Display version information
 	@echo "Commit:  $(COMMIT)"
 	@echo "Date:    $(BUILD_DATE)"
 
+.PHONY: deploy-dra-driver-memory
+deploy-dra-driver-memory: build
+	hack/deploy-dra-driver-memory.sh

@@ -14,17 +14,23 @@ import (
 	"github.com/Tal-or/dra-deployer/pkg/manifests"
 )
 
-func Deploy(ctx context.Context, cli client.Client, namespace, image string) error {
-	klog.InfoS("deploying manifests to cluster", "namespace", namespace, "image", image)
+type Options struct {
+	Namespace string
+	Image     string
+	Command   string
+}
+
+func Deploy(ctx context.Context, cli client.Client, opts Options) error {
+	klog.InfoS("deploying manifests to cluster", "namespace", opts.Namespace)
 
 	// Check and create namespace if needed
-	err := createNamespaceIfNeeded(ctx, cli, namespace)
+	err := createNamespaceIfNeeded(ctx, cli, opts.Namespace)
 	if err != nil {
 		return fmt.Errorf("failed to create namespace: %w", err)
 	}
 
 	// Get all manifests
-	m, err := manifests.GetAll(namespace, image)
+	m, err := manifests.GetAll(opts.Namespace, opts.Image)
 	if err != nil {
 		return fmt.Errorf("failed to get manifests: %w", err)
 	}

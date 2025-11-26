@@ -34,7 +34,7 @@ func NewRootCommand() *cobra.Command {
 	parseFlags(rootCmd.PersistentFlags())
 
 	rootCmd.AddCommand(NewRenderCommand())
-	rootCmd.AddCommand(NewApplyCommand())
+	rootCmd.AddCommand(NewApplyCommand(&applyArgs{}))
 	rootCmd.AddCommand(NewDeleteCommand())
 	return rootCmd
 }

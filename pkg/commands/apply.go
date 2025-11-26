@@ -4,22 +4,38 @@ import (
 	"context"
 
 	"github.com/spf13/cobra"
+	flag "github.com/spf13/pflag"
 
 	cli "github.com/Tal-or/dra-deployer/pkg/client"
 	"github.com/Tal-or/dra-deployer/pkg/deploy"
 )
 
-func NewApplyCommand() *cobra.Command {
-	return &cobra.Command{
+type applyArgs struct {
+	command string
+}
+
+func NewApplyCommand(applyArgs *applyArgs) *cobra.Command {
+	applyCmd := &cobra.Command{
 		Use:   "apply",
 		Short: "Apply DRA plugin manifests to a Kubernetes cluster",
 		Long: `Apply all DRA plugin manifests directly to a Kubernetes cluster. This will 
 		create or update the necessary resources including ServiceAccount, ClusterRole, 
 		ClusterRoleBinding, DaemonSet, DeviceClasses, and ValidatingAdmissionPolicy.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return apply()
+			c, err := cli.New()
+			if err != nil {
+				return err
+			}
+
+			return deploy.Deploy(context.Background(), c, deploy.Options{
+				Namespace: namespace,
+				Image:     image,
+				Command:   applyArgs.command,
+			})
 		},
 	}
+	parseApplyCmdFlags(applyCmd.PersistentFlags(), applyArgs)
+	return applyCmd
 }
 
 func NewDeleteCommand() *cobra.Command {
@@ -30,29 +46,16 @@ func NewDeleteCommand() *cobra.Command {
 		is specified, deleting the namespace will automatically remove all namespaced resources 
 		(ServiceAccount, DaemonSet). Cluster-scoped resources will be deleted explicitly.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return delete()
+			c, err := cli.New()
+			if err != nil {
+				return err
+			}
+
+			return deploy.Delete(context.Background(), c, namespace)
 		},
 	}
 }
 
-// deploy applies all manifests to the Kubernetes cluster
-func apply() error {
-	// Create client with all necessary types registered
-	c, err := cli.New()
-	if err != nil {
-		return err
-	}
-
-	return deploy.Deploy(context.Background(), c, namespace, image)
-}
-
-// delete removes all manifests from the Kubernetes cluster
-func delete() error {
-	// Create client with all necessary types registered
-	c, err := cli.New()
-	if err != nil {
-		return err
-	}
-
-	return deploy.Delete(context.Background(), c, namespace)
+func parseApplyCmdFlags(flags *flag.FlagSet, args *applyArgs) {
+	flags.StringVar(&args.command, "command", "", "Command pass for running the container")
 }

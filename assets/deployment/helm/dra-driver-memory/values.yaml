@@ -1,0 +1,93 @@
+# Default values for dra-driver-memory
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# nameOverride allows overriding the chart name
+nameOverride: ""
+# fullnameOverride allows overriding the full resource names
+fullnameOverride: ""
+
+# Image configuration for the DRA memory driver
+image:
+  # repository is the container image repository
+  repository: quay.io/titzhak/dra-example-driver
+  # tag is the container image tag
+  tag: v0.1.0
+  # pullPolicy is the image pull policy (Always, IfNotPresent, Never)
+  pullPolicy: Always
+
+# Service account configuration
+serviceAccount:
+  # create specifies whether to create a service account
+  create: true
+  # name is the name of the service account (if not set, a name is generated)
+  name: ""
+
+# DaemonSet configuration
+daemonset:
+  # priorityClassName for the daemonset pods
+  priorityClassName: system-node-critical
+  
+  # securityContext for the plugin container
+  securityContext:
+    privileged: true
+  
+  # command to run in the container
+  command:
+    - dra-example-kubeletplugin
+  
+  # Environment variables for the driver
+  env:
+    # CDI_ROOT is the path for CDI (Container Device Interface) configuration
+    cdiRoot: /var/run/cdi
+    # numDevices is the number of memory devices to expose per node
+    numDevices: "8"
+  
+  # Volume mount paths
+  volumes:
+    pluginsRegistry: /var/lib/kubelet/plugins_registry
+    plugins: /var/lib/kubelet/plugins
+    cdi: /var/run/cdi
+
+# Driver configuration
+driver:
+  # name is the driver identifier used in device classes
+  name: manager.memory.com
+
+# RBAC configuration
+rbac:
+  # create specifies whether to create RBAC resources
+  create: true
+
+# ValidatingAdmissionPolicy configuration
+validatingAdmissionPolicy:
+  # create specifies whether to create the validating admission policy
+  create: true
+  # failurePolicy defines how unrecognized errors are handled (Fail or Ignore)
+  failurePolicy: Fail
+
+# OpenShift specific configuration
+openshift:
+  # enabled specifies whether to deploy OpenShift-specific resources (SCC)
+  # Set to true when deploying on OpenShift
+  enabled: false
+  
+  # SecurityContextConstraints configuration
+  scc:
+    # name is the name of the SCC resource
+    name: ""
+    # allowPrivilegedContainer allows privileged containers
+    allowPrivilegedContainer: true
+    # allowHostDirVolumePlugin allows host directory volume plugins
+    allowHostDirVolumePlugin: true
+    # allowHostNetwork allows host network
+    allowHostNetwork: false
+    # allowHostPID allows host PID namespace
+    allowHostPID: false
+    # allowHostPorts allows host ports
+    allowHostPorts: false
+    # allowHostIPC allows host IPC namespace
+    allowHostIPC: false
+    # readOnlyRootFilesystem requires read-only root filesystem
+    readOnlyRootFilesystem: false
+

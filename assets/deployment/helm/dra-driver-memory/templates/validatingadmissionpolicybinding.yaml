@@ -1,0 +1,12 @@
+{{- if .Values.validatingAdmissionPolicy.create -}}
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: resourceslices-policy-{{ include "dra-driver-memory.fullname" . }}
+  labels:
+    {{- include "dra-driver-memory.labels" . | nindent 4 }}
+spec:
+  policyName: resourceslices-policy-{{ include "dra-driver-memory.fullname" . }}
+  validationActions: [Deny]
+{{- end }}
+

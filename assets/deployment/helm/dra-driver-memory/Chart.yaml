@@ -1,0 +1,14 @@
+apiVersion: v2
+name: dra-driver-memory
+description: A Helm chart for deploying DRA (Dynamic Resource Allocation) Memory Driver
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+keywords:
+  - dra
+  - dynamic-resource-allocation
+  - memory
+  - kubernetes
+maintainers:
+  - name: DRA Memory Driver Team
+

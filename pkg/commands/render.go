@@ -9,7 +9,7 @@ import (
 
 	"sigs.k8s.io/yaml"
 
-	"github.com/Tal-or/dra-deployer/pkg/manifests"
+	"github.com/Tal-or/dra-deployer/pkg/helm"
 )
 
 func NewRenderCommand() *cobra.Command {
@@ -33,40 +33,26 @@ reviewing the manifests before applying them or for piping to kubectl apply.`,
 func render() error {
 	klog.InfoS("Rendering manifests", "namespace", namespace, "image", image)
 
-	m, err := manifests.GetAll(namespace, image)
+	// Load Helm chart
+	chartLoader, err := helm.NewChartLoader("")
 	if err != nil {
-		return fmt.Errorf("failed to get manifests: %w", err)
+		return fmt.Errorf("failed to load Helm chart: %w", err)
 	}
 
-	// Get DeviceClasses separately since they're not included in GetAll
-	deviceClasses, err := manifests.GetDeviceClasses()
+	objects, err := chartLoader.Render(helm.Options{
+		Namespace: namespace,
+	})
 	if err != nil {
-		return fmt.Errorf("failed to get DeviceClasses: %w", err)
-	}
-
-	// Render all manifests
-	manifestsList := []interface{}{
-		m.ServiceAccount,
-		m.SecurityContextConstraints,
-		m.ClusterRole,
-		m.ClusterRoleBinding,
-		m.DaemonSet,
-		m.ValidatingAdmissionPolicy,
-		m.ValidatingAdmissionPolicyBinding,
-	}
-
-	// Add DeviceClasses
-	for _, dc := range deviceClasses {
-		manifestsList = append(manifestsList, dc)
+		return fmt.Errorf("failed to render Helm chart: %w", err)
 	}
 
 	// Serialize each manifest as YAML
-	for i, manifest := range manifestsList {
+	for i, obj := range objects {
 		if i > 0 {
 			fmt.Println("---")
 		}
 
-		yamlData, err := yaml.Marshal(manifest)
+		yamlData, err := yaml.Marshal(obj)
 		if err != nil {
 			return fmt.Errorf("failed to marshal manifest to YAML: %w", err)
 		}

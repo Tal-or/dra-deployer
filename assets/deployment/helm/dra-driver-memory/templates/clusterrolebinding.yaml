@@ -1,0 +1,17 @@
+{{- if .Values.rbac.create -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "dra-driver-memory.clusterRoleBindingName" . }}
+  labels:
+    {{- include "dra-driver-memory.labels" . | nindent 4 }}
+subjects:
+- kind: ServiceAccount
+  name: {{ include "dra-driver-memory.serviceAccountName" . }}
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: ClusterRole
+  name: {{ include "dra-driver-memory.clusterRoleName" . }}
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}
+

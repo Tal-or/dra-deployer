@@ -11,7 +11,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
-	"github.com/Tal-or/dra-deployer/pkg/manifests"
+	"github.com/Tal-or/dra-deployer/pkg/helm"
 )
 
 type Options struct {
@@ -29,14 +29,22 @@ func Deploy(ctx context.Context, cli client.Client, opts Options) error {
 		return fmt.Errorf("failed to create namespace: %w", err)
 	}
 
-	// Get all manifests
-	m, err := manifests.GetAll(opts.Namespace, opts.Image)
+	// Load Helm chart
+	chartLoader, err := helm.NewChartLoader("")
 	if err != nil {
-		return fmt.Errorf("failed to get manifests: %w", err)
+		return fmt.Errorf("failed to load Helm chart: %w", err)
 	}
 
-	// Deploy all manifests
-	for _, obj := range m.GetObjects() {
+	objects, err := chartLoader.Render(helm.Options{
+		Namespace: opts.Namespace,
+	})
+
+	if err != nil {
+		return fmt.Errorf("failed to render Helm chart: %w", err)
+	}
+
+	// Deploy all objects
+	for _, obj := range objects {
 		key := fmt.Sprintf("%s/%s/%s", obj.GetObjectKind().GroupVersionKind().Kind, obj.GetNamespace(), obj.GetName())
 		klog.V(4).InfoS("creating/updating", "key", key)
 		result, err := controllerutil.CreateOrUpdate(ctx, cli, obj, nil)
@@ -79,38 +87,17 @@ func createNamespaceIfNeeded(ctx context.Context, cli client.Client, namespace s
 func Delete(ctx context.Context, cli client.Client, namespace string) error {
 	klog.InfoS("Deleting manifests from cluster", "namespace", namespace)
 
-	// Get all manifests (image doesn't matter for deletion, using default)
-	m, err := manifests.GetAll(namespace, "")
+	// Load Helm chart
+	chartLoader, err := helm.NewChartLoader("")
 	if err != nil {
-		return fmt.Errorf("failed to get manifests: %w", err)
+		return fmt.Errorf("failed to load Helm chart: %w", err)
 	}
 
-	// Delete cluster-scoped resources in reverse order
-	clusterScopedObjects := []client.Object{
-		m.ValidatingAdmissionPolicyBinding,
-		m.ValidatingAdmissionPolicy,
-		m.SecurityContextConstraints,
-		m.ClusterRoleBinding,
-		m.ClusterRole,
-	}
-
-	for _, obj := range clusterScopedObjects {
-		if obj == nil {
-			continue
-		}
-		key := fmt.Sprintf("%s/%s", obj.GetObjectKind().GroupVersionKind().Kind, obj.GetName())
-		klog.V(2).InfoS("Deleting cluster-scoped resource", "key", key)
-
-		err := cli.Delete(ctx, obj)
-		if err != nil {
-			if errors.IsNotFound(err) {
-				klog.V(4).InfoS("Resource already deleted", "key", key)
-			} else {
-				return fmt.Errorf("failed to delete object %s: %w", key, err)
-			}
-		} else {
-			klog.InfoS("Deleted resource", "key", key)
-		}
+	objects, err := chartLoader.Render(helm.Options{
+		Namespace: namespace,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to render Helm chart: %w", err)
 	}
 
 	// Delete namespace (this will cascade delete namespaced resources like ServiceAccount and DaemonSet)
@@ -127,6 +114,29 @@ func Delete(ctx context.Context, cli client.Client, namespace string) error {
 		}
 	} else {
 		klog.InfoS("Deleted namespace", "namespace", namespace)
+	}
+
+	// Delete objects
+	for _, obj := range objects {
+		// Skip namespaced objects
+		if obj.GetNamespace() != "" {
+			continue
+		}
+
+		// Delete cluster-scoped objects
+		key := fmt.Sprintf("%s/%s", obj.GetObjectKind().GroupVersionKind().Kind, obj.GetName())
+		klog.V(2).InfoS("Deleting object", "key", key)
+
+		err := cli.Delete(ctx, obj)
+		if err != nil {
+			if errors.IsNotFound(err) {
+				klog.V(4).InfoS("Resource already deleted", "key", key)
+			} else {
+				return fmt.Errorf("failed to delete object %s: %w", key, err)
+			}
+		} else {
+			klog.InfoS("Deleted resource", "key", key)
+		}
 	}
 
 	klog.InfoS("Successfully deleted all manifests from cluster")

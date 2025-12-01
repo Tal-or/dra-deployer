@@ -41,7 +41,9 @@ func render() error {
 	}
 
 	objects, err := chartLoader.Render(params.EnvConfig{
-		Namespace: namespace,
+		Namespace:    namespace,
+		Image:        image,
+		NodeSelector: nodeSelector,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to render Helm chart: %w", err)

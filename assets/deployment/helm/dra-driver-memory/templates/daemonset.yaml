@@ -18,6 +18,10 @@ spec:
     spec:
       priorityClassName: {{ .Values.daemonset.priorityClassName }}
       serviceAccountName: {{ include "dra-driver-memory.serviceAccountName" . }}
+      {{- with .Values.daemonset.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
       - name: plugin
         securityContext:

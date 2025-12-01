@@ -9,9 +9,10 @@ import (
 )
 
 var (
-	namespace string
-	verbosity int
-	image     string
+	namespace    string
+	verbosity    int
+	image        string
+	nodeSelector map[string]string
 )
 
 const (
@@ -48,4 +49,5 @@ func parseFlags(flags *pflag.FlagSet) {
 	flags.IntVarP(&verbosity, "verbose", "v", defaultVerbosity, "Log level verbosity")
 	flags.StringVarP(&namespace, "namespace", "n", defaultNamespace, "Namespace for namespaced resources")
 	flags.StringVarP(&image, "image", "i", defaultImage, "Container image for the DRA plugin")
+	flags.StringToStringVarP(&nodeSelector, "node-selector", "s", map[string]string{}, "Node selector for daemonset pods")
 }

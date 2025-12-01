@@ -29,10 +29,11 @@ func NewApplyCommand(applyArgs *applyArgs) *cobra.Command {
 			}
 
 			return deploy.Deploy(context.Background(), c, params.EnvConfig{
-				Namespace:   namespace,
-				Image:       image,
-				Command:     applyArgs.command,
-				IsOpenshift: true,
+				Namespace:    namespace,
+				Image:        image,
+				Command:      applyArgs.command,
+				NodeSelector: nodeSelector,
+				IsOpenshift:  true,
 			})
 		},
 	}

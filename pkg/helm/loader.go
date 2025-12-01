@@ -133,12 +133,24 @@ func buildValuesFromEnvConfig(envConfig params.EnvConfig) (map[string]any, error
 	}
 	klog.V(5).InfoS("Set OpenShift mode", "enabled", envConfig.IsOpenshift)
 
+	// Build daemonset configuration
+	daemonsetValues := make(map[string]any)
+
 	// Set command if provided
 	if envConfig.Command != "" {
-		values["daemonset"] = map[string]any{
-			"command": []string{envConfig.Command},
-		}
+		daemonsetValues["command"] = []string{envConfig.Command}
 		klog.V(5).InfoS("Set command from envConfig", "command", envConfig.Command)
+	}
+
+	// Set node selector if provided
+	if len(envConfig.NodeSelector) > 0 {
+		daemonsetValues["nodeSelector"] = envConfig.NodeSelector
+		klog.V(5).InfoS("Set nodeSelector from envConfig", "nodeSelector", envConfig.NodeSelector)
+	}
+
+	// Only set daemonset values if we have any
+	if len(daemonsetValues) > 0 {
+		values["daemonset"] = daemonsetValues
 	}
 
 	return values, nil

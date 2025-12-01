@@ -36,6 +36,10 @@ daemonset:
   command:
     - dra-example-kubeletplugin
   
+  # nodeSelector for pod assignment
+  # Example: {kubernetes.io/hostname: node1}
+  nodeSelector: {}
+  
   # Environment variables for the driver
   env:
     # CDI_ROOT is the path for CDI (Container Device Interface) configuration

@@ -50,6 +50,8 @@ spec:
           mountPath: {{ .Values.daemonset.volumes.plugins }}
         - name: cdi
           mountPath: {{ .Values.daemonset.volumes.cdi }}
+        - name: nri
+          mountPath: {{ .Values.daemonset.volumes.nri }}
       volumes:
       - name: plugins-registry
         hostPath:
@@ -60,4 +62,6 @@ spec:
       - name: cdi
         hostPath:
           path: {{ .Values.daemonset.volumes.cdi }}
-
+      - name: nri
+        hostPath:
+          path: {{ .Values.daemonset.volumes.nri }}

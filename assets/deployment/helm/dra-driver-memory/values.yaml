@@ -52,6 +52,7 @@ daemonset:
     pluginsRegistry: /var/lib/kubelet/plugins_registry
     plugins: /var/lib/kubelet/plugins
     cdi: /var/run/cdi
+    nri: /var/run/nri/nri.sock
 
 # Driver configuration
 driver:

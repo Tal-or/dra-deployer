@@ -1,4 +1,4 @@
-Params# Helm Chart Loader Package
+# Helm Chart Loader Package
 
 This package provides functionality to load and render the DRA Memory Driver Helm chart from the filesystem.
 

@@ -10,6 +10,7 @@ import (
 	"sigs.k8s.io/yaml"
 
 	"github.com/Tal-or/dra-deployer/pkg/helm"
+	"github.com/Tal-or/dra-deployer/pkg/params"
 )
 
 func NewRenderCommand() *cobra.Command {
@@ -39,7 +40,7 @@ func render() error {
 		return fmt.Errorf("failed to load Helm chart: %w", err)
 	}
 
-	objects, err := chartLoader.Render(helm.Options{
+	objects, err := chartLoader.Render(params.EnvConfig{
 		Namespace: namespace,
 	})
 	if err != nil {

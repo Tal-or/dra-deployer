@@ -8,6 +8,7 @@ import (
 
 	cli "github.com/Tal-or/dra-deployer/pkg/client"
 	"github.com/Tal-or/dra-deployer/pkg/deploy"
+	"github.com/Tal-or/dra-deployer/pkg/params"
 )
 
 type applyArgs struct {
@@ -27,10 +28,11 @@ func NewApplyCommand(applyArgs *applyArgs) *cobra.Command {
 				return err
 			}
 
-			return deploy.Deploy(context.Background(), c, deploy.Options{
-				Namespace: namespace,
-				Image:     image,
-				Command:   applyArgs.command,
+			return deploy.Deploy(context.Background(), c, params.EnvConfig{
+				Namespace:   namespace,
+				Image:       image,
+				Command:     applyArgs.command,
+				IsOpenshift: true,
 			})
 		},
 	}

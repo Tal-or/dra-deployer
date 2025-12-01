@@ -12,6 +12,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	"github.com/Tal-or/dra-deployer/pkg/helm"
+	"github.com/Tal-or/dra-deployer/pkg/params"
 )
 
 type Options struct {
@@ -20,11 +21,11 @@ type Options struct {
 	Command   string
 }
 
-func Deploy(ctx context.Context, cli client.Client, opts Options) error {
-	klog.InfoS("deploying manifests to cluster", "namespace", opts.Namespace)
+func Deploy(ctx context.Context, cli client.Client, envConfig params.EnvConfig) error {
+	klog.InfoS("deploying manifests to cluster", "namespace", envConfig.Namespace)
 
 	// Check and create namespace if needed
-	err := createNamespaceIfNeeded(ctx, cli, opts.Namespace)
+	err := createNamespaceIfNeeded(ctx, cli, envConfig.Namespace)
 	if err != nil {
 		return fmt.Errorf("failed to create namespace: %w", err)
 	}
@@ -35,9 +36,7 @@ func Deploy(ctx context.Context, cli client.Client, opts Options) error {
 		return fmt.Errorf("failed to load Helm chart: %w", err)
 	}
 
-	objects, err := chartLoader.Render(helm.Options{
-		Namespace: opts.Namespace,
-	})
+	objects, err := chartLoader.Render(envConfig)
 
 	if err != nil {
 		return fmt.Errorf("failed to render Helm chart: %w", err)
@@ -93,8 +92,9 @@ func Delete(ctx context.Context, cli client.Client, namespace string) error {
 		return fmt.Errorf("failed to load Helm chart: %w", err)
 	}
 
-	objects, err := chartLoader.Render(helm.Options{
+	objects, err := chartLoader.Render(params.EnvConfig{
 		Namespace: namespace,
+		Values:    nil,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to render Helm chart: %w", err)

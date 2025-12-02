@@ -1,0 +1,59 @@
+name: E2E and Unit Tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+          cache: true
+      
+      - name: Run unit tests
+        run: make test-unit
+
+  e2e-tests:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+          cache: true
+      
+      - name: Setup Minikube cluster
+        run: make setup-e2e-cluster
+      
+      - name: Run e2e tests
+        run: make test-e2e
+        env:
+          KUBECONFIG: /home/runner/.kube/config
+          IMAGE: quay.io/fromani/dra-driver-memory:v0.0.2025112401
+          COMMAND: /bin/dramemory
+          NAMESPACE: dra-deployer
+      
+      - name: Show cluster info on failure
+        if: failure()
+        run: hack/ci/show-debug-info.sh
+        env:
+          NAMESPACE: dra-deployer
+

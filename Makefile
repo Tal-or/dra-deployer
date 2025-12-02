@@ -78,3 +78,13 @@ version: ## Display version information
 .PHONY: deploy-dra-driver-memory
 deploy-dra-driver-memory: build
 	hack/deploy-dra-driver-memory.sh
+
+.PHONY: setup-e2e-cluster
+setup-e2e-cluster: ## Setup Minikube cluster with CRI-O and NRI for e2e tests
+	@echo "Setting up e2e cluster..."
+	hack/ci/setup-cluster.sh
+
+.PHONY: test-e2e
+test-e2e: build ## Run end-to-end tests
+	@echo "Running e2e tests..."
+	$(GO) run github.com/onsi/ginkgo/v2/ginkgo -v -timeout=10m ./test/e2e/...

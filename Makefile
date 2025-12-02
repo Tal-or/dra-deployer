@@ -38,7 +38,7 @@ clean: ## Remove build artifacts
 .PHONY: test-unit
 test-unit: ## Run unit tests
 	@echo "Running tests..."
-	$(GO) test -v -race -cover ./...
+	$(GO) test -v -race -cover $(shell $(GO) list ./... | grep -v /test/) 
 
 .PHONY: deps-update
 deps-update: ## Update dependencies

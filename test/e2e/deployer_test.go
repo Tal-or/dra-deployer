@@ -60,6 +60,7 @@ var _ = Describe("DRA Deployer E2E", func() {
 	JustBeforeEach(func() {
 		By("Deploying the DRA memory plugin")
 		cmd := exec.Command(deployerBin, "apply", "-i", image, "--command", command)
+		cmd.Dir = projectRoot // Set working directory to project root
 		deployOutput, deployError = cmd.CombinedOutput()
 	})
 

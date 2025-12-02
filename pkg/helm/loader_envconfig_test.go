@@ -4,6 +4,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/k8stopologyawareschedwg/deployer/pkg/deployer/platform"
+
 	"github.com/Tal-or/dra-deployer/pkg/image"
 	"github.com/Tal-or/dra-deployer/pkg/params"
 )
@@ -17,10 +19,10 @@ func TestRenderWithEnvConfig(t *testing.T) {
 
 	// Test with all envConfig fields set
 	envConfig := params.EnvConfig{
-		Namespace:   "test-namespace",
-		Image:       "quay.io/myorg/dra-memory-driver:v0.5.0",
-		Command:     "my-custom-command",
-		IsOpenshift: true,
+		Namespace: "test-namespace",
+		Image:     "quay.io/myorg/dra-memory-driver:v0.5.0",
+		Command:   "my-custom-command",
+		Platform:  platform.OpenShift,
 	}
 
 	objects, err := loader.Render(envConfig)
@@ -108,10 +110,10 @@ func TestRenderWithoutOpenShift(t *testing.T) {
 		t.Fatalf("Failed to create chart loader: %v", err)
 	}
 
-	// Test with IsOpenshift=false
+	// Test with different platform than OpenShift
 	envConfig := params.EnvConfig{
-		Namespace:   "test-namespace",
-		IsOpenshift: false,
+		Namespace: "test-namespace",
+		Platform:  platform.Kubernetes,
 	}
 
 	objects, err := loader.Render(envConfig)
@@ -122,11 +124,11 @@ func TestRenderWithoutOpenShift(t *testing.T) {
 	// Verify SCC is NOT created
 	for _, obj := range objects {
 		if obj.GetKind() == "SecurityContextConstraints" {
-			t.Error("SecurityContextConstraints should not be created when IsOpenshift=false")
+			t.Error("SecurityContextConstraints should not be created when platform is not OpenShift")
 		}
 	}
 
-	t.Log("SCC correctly not created when IsOpenshift=false")
+	t.Log("SCC correctly not created when platform is not OpenShift")
 }
 
 func TestParseImage(t *testing.T) {

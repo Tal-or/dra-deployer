@@ -6,6 +6,8 @@ import (
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
 
+	"github.com/k8stopologyawareschedwg/deployer/pkg/deployer/platform/detect"
+
 	cli "github.com/Tal-or/dra-deployer/pkg/client"
 	"github.com/Tal-or/dra-deployer/pkg/deploy"
 	"github.com/Tal-or/dra-deployer/pkg/params"
@@ -28,12 +30,17 @@ func NewApplyCommand(applyArgs *applyArgs) *cobra.Command {
 				return err
 			}
 
+			platform, err := detect.Platform(context.Background())
+			if err != nil {
+				return err
+			}
+
 			return deploy.Deploy(context.Background(), c, params.EnvConfig{
 				Namespace:    namespace,
 				Image:        image,
 				Command:      applyArgs.command,
 				NodeSelector: nodeSelector,
-				IsOpenshift:  true,
+				Platform:     platform,
 			})
 		},
 	}

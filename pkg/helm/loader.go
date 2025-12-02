@@ -17,6 +17,8 @@ import (
 
 	"github.com/Tal-or/dra-deployer/pkg/image"
 	"github.com/Tal-or/dra-deployer/pkg/params"
+
+	"github.com/k8stopologyawareschedwg/deployer/pkg/deployer/platform"
 )
 
 const (
@@ -129,9 +131,9 @@ func buildValuesFromEnvConfig(envConfig params.EnvConfig) (map[string]any, error
 
 	// Set OpenShift flag
 	values["openshift"] = map[string]any{
-		"enabled": envConfig.IsOpenshift,
+		"enabled": envConfig.Platform == platform.OpenShift,
 	}
-	klog.V(5).InfoS("Set OpenShift mode", "enabled", envConfig.IsOpenshift)
+	klog.V(5).InfoS("Platform detected", "platform", envConfig.Platform)
 
 	// Build daemonset configuration
 	daemonsetValues := make(map[string]any)
